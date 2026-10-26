@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dataset caches & raw inputs (avoids pushing 100MB+ files)
+data/cleaned_retail.csv
+data/raw/*.csv
+data/raw/*.xlsx
+data/raw/*.zip
+data/raw/online_retail_ii/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Environment variables
+.env
+.env.local

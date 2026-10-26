@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Price Elasticity &amp; Revenue Optimizer</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Plotly.js for responsive client-side econometric visualization -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     UPLOAD SCREEN
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="upload-screen">
+
+  <div class="upload-brand">
+    <div class="upload-logo">◈</div>
+    <div class="upload-title">Price Elasticity &amp; Revenue Optimizer</div>
+    <div class="upload-subtitle">Econometric Price Elasticity of Demand (PED) &amp; Profit Maximization Engine</div>
+  </div>
+
+  <div class="upload-zone-wrap">
+    <!-- Currency selector before upload -->
+    <div class="upload-currency-bar">
+      <label for="currency-select" class="currency-label">Currency Symbol:</label>
+      <select id="currency-select" class="currency-select">
+        <option value="£" selected>£ (GBP)</option>
+        <option value="$">$ (USD)</option>
+        <option value="€">€ (EUR)</option>
+        <option value="₺">₺ (TRY)</option>
+      </select>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="upload-zone" id="drop-zone">
+      <div class="upload-zone-icon">📂</div>
+      <div class="upload-zone-text">Drop your transaction datasets here</div>
+      <div class="upload-zone-hint">Supports CSV and Excel (.xlsx, .xls) files</div>
+      <div class="upload-zone-limit">Upload up to 10 files · Auto-maps Price, Quantity, Description &amp; Date</div>
+      <label class="upload-browse-btn" for="file-input">
+        ＋ Browse Files
+      </label>
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" multiple />
+    </div>
+
+    <!-- File list -->
+    <div class="file-list" id="file-list"></div>
+
+    <!-- Actions -->
+    <div class="upload-actions" id="upload-actions" style="display:none">
+      <button class="analyse-btn" id="analyse-btn" disabled>
+        <span>🔮</span> Run Econometric Optimization
+      </button>
+      <button class="clear-btn" id="clear-btn">✕ Clear</button>
+    </div>
+
+    <!-- Quick sample bypass -->
+    <div class="sample-bypass-wrap">
+      <button class="text-link-btn" id="load-sample-btn">
+        Or explore with the bundled verified retail benchmark dataset →
+      </button>
+    </div>
+
+    <!-- Error message -->
+    <div id="upload-error" class="hidden" style="color:var(--red);font-size:0.85rem;text-align:center;padding:0.5rem;"></div>
+  </div>
+
+</div>
+
+<!-- Processing overlay -->
+<div id="processing-overlay" class="hidden">
+  <div class="processing-card">
+    <span class="spinner spinner-lg"></span>
+    <div class="processing-title">Calibrating Econometric Models…</div>
+    <div class="processing-step" id="processing-step">Loading files…</div>
+    <div class="processing-bar-wrap">
+      <div class="processing-bar" id="processing-bar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     DASHBOARD
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="dashboard" class="hidden">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-name">Price Elasticity &amp; Revenue Optimizer</span>
+    </div>
+    <div class="navbar-actions">
+      <button class="methodology-nav-btn" id="open-methodology-btn">📖 Methodology &amp; Limitations</button>
+      <button class="new-analysis-btn" id="new-analysis-btn">↺ Upload Dataset</button>
+    </div>
+  </nav>
+
+  <!-- Dataset info bar -->
+  <div class="dataset-bar" id="dataset-bar">
+    <div class="dataset-bar-item">
+      <span class="dataset-bar-label">Dataset</span>
+      <span class="dataset-bar-value" id="db-name">—</span>
+    </div>
+    <div class="dataset-bar-item" style="margin-left: auto;">
+      <span class="dataset-bar-label">Currency</span>
+      <select id="dashboard-currency-select" class="currency-select-inline">
+        <option value="£">£ (GBP)</option>
+        <option value="$">$ (USD)</option>
+        <option value="€">€ (EUR)</option>
+        <option value="₺">₺ (TRY)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <section class="hero">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-wisteria">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-value" id="kpi-revenue"><span class="spinner"></span></div>
+          <div class="kpi-sub" id="kpi-date-range">Loading…</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-amethyst">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Max Projected Revenue Gain</div>
+          <div class="kpi-value" id="kpi-boost"><span class="spinner"></span></div>
+          <div class="kpi-sub" id="kpi-transactions">Loading…</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-rose">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Top Revenue Product</div>
+          <div class="kpi-value kpi-value-sm" id="kpi-top-product"><span class="spinner"></span></div>
+          <div class="kpi-sub" id="kpi-top-country">Loading…</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-gold">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-content">
+          <div class="kpi-label">Mean Price Elasticity (Ed)</div>
+          <div class="kpi-value" id="kpi-avg-elasticity"><span class="spinner"></span></div>
+          <div class="kpi-sub" id="kpi-elasticity-note">Across reliable models</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STEP 1: HISTORICAL SALES DYNAMICS ─────────────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="step-badge">1</span>
+      Historical Sales &amp; Price Dynamics
+    </h2>
+    <div class="sales-grid">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-icon">📅</span>
+          <div>
+            <div class="chart-title">Revenue Trend Over Time</div>
+            <div class="chart-desc">Monthly aggregated revenue showing seasonal sales velocity</div>
+          </div>
+        </div>
+        <div id="plot-time-series" class="plotly-chart-box"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-icon">🔔</span>
+          <div>
+            <div class="chart-title">Unit Price Distribution</div>
+            <div class="chart-desc">Transaction frequency density showing catalog price concentration</div>
+          </div>
+        </div>
+        <div id="plot-price-dist" class="plotly-chart-box"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STEP 2: OPTIMAL PRICE & PROFIT OPTIMIZATION ───────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="step-badge">2</span>
+      Econometric Price &amp; Profit Optimization
+    </h2>
+
+    <div class="optimal-section-header">
+      <div class="product-selector-wrap">
+        <label for="product-select" class="selector-label">Target Product:</label>
+        <select id="product-select" class="product-select">
+          {% for product in top_products %}
+          <option value="{{ product }}">{{ product }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="margin-slider-wrap">
+        <label for="margin-input" class="selector-label">Assumed Gross Margin:</label>
+        <span id="margin-display" style="font-weight:700;color:var(--amethyst);">35%</span>
+        <input type="range" id="margin-input" min="10" max="80" step="5" value="35" class="margin-slider" />
+      </div>
+    </div>
+
+    <!-- Optimization banner -->
+    <div class="opt-banner" id="opt-banner">
+      <div class="opt-loading-state" id="opt-loading-state">
+        <span class="spinner"></span> Fitting concave log-quadratic revenue model…
+      </div>
+      <div class="hidden" id="opt-result-content" style="display:flex;align-items:center;gap:2rem;width:100%;flex-wrap:wrap;">
+        <div class="opt-banner-icon">🎯</div>
+        <div class="opt-banner-main">
+          <div class="opt-banner-headline">Optimization Recommendation &amp; Model Specification</div>
+          <div class="opt-banner-result" id="opt-banner-text">—</div>
+          <div class="opt-banner-sub" id="opt-banner-sub">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metrics row -->
+    <div class="opt-metrics">
+      <div class="opt-metric-card">
+        <div class="opt-metric-label">Current Avg Price</div>
+        <div class="opt-metric-value wisteria" id="opt-current-price">—</div>
+      </div>
+      <div class="opt-metric-card">
+        <div class="opt-metric-label">Revenue Optimal P*</div>
+        <div class="opt-metric-value amethyst" id="opt-optimal-price">—</div>
+      </div>
+      <div class="opt-metric-card">
+        <div class="opt-metric-label">Profit Optimal P* (Lerner)</div>
+        <div class="opt-metric-value teal" id="opt-profit-price">—</div>
+      </div>
+      <div class="opt-metric-card">
+        <div class="opt-metric-label">Estimated Rev Gain</div>
+        <div class="opt-metric-value gold" id="opt-revenue-boost">—</div>
+      </div>
+      <div class="opt-metric-card">
+        <div class="opt-metric-label">Model Reliability</div>
+        <div class="opt-metric-value rose" id="opt-reliability" style="font-size:1.1rem;margin-top:4px;">—</div>
+      </div>
+    </div>
+
+    <!-- Interactive Charts for the Selected Product -->
+    <div class="opt-charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-icon">📊</span>
+          <div>
+            <div class="chart-title">Empirical Demand Curve &amp; Confidence Band</div>
+            <div class="chart-desc">Observed price-quantity clusters vs. OLS fitted demand trajectory</div>
+          </div>
+        </div>
+        <div id="plot-demand-curve" class="plotly-chart-box"></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-icon">📈</span>
+          <div>
+            <div class="chart-title">Revenue &amp; Profit Optimization Functions</div>
+            <div class="chart-desc">R(P) vs. Π(P) = (P - c)·Q(P) with marked optimal interior peaks</div>
+          </div>
+        </div>
+        <div id="plot-revenue-curve" class="plotly-chart-box"></div>
+      </div>
+    </div>
+
+    <!-- Assumption-based market clearing simulation -->
+    <div class="chart-card full-width" style="margin-top:1.5rem;">
+      <div class="chart-card-header">
+        <span class="chart-icon">⚖️</span>
+        <div>
+          <div class="chart-title">Market Clearing Simulation (Stylized Supply Assumption)</div>
+          <div class="chart-desc">
+            Empirical demand intersected with a calibrated supply schedule (assumed supply elasticity ε<sub>s</sub> = 0.8).
+            <span class="badge-tag">Simulation Benchmark</span>
+          </div>
+        </div>
+      </div>
+      <div id="plot-supply-demand" class="plotly-chart-box" style="height:320px;"></div>
+    </div>
+  </section>
+
+  <!-- ── STEP 3: ELASTICITY & ECONOMETRIC DIAGNOSTICS ────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="step-badge">3</span>
+      Catalog Price Elasticity Matrix &amp; Statistical Inference
+    </h2>
+    <div class="elasticity-layout">
+      <div class="elasticity-table-card">
+        <table class="elasticity-table" id="elasticity-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Elasticity (Ed)</th>
+              <th>95% Conf. Interval</th>
+              <th>p-Value</th>
+              <th>R²</th>
+              <th>Assessment</th>
+            </tr>
+          </thead>
+          <tbody id="elasticity-tbody">
+            <tr><td colspan="6" class="text-center"><span class="spinner"></span> Loading models…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-icon">⚡</span>
+          <div>
+            <div class="chart-title">Comparative Catalog Elasticities</div>
+            <div class="chart-desc">Grouped by empirical reliability status</div>
+          </div>
+        </div>
+        <div id="plot-elasticity-bars" class="plotly-chart-box"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STEP 4: LIVE PRICE & PROFIT SIMULATOR ──────────────────────────── -->
+  <section class="section">
+    <h2 class="section-title">
+      <span class="step-badge">4</span>
+      Live Interactive Price Simulator
+    </h2>
+    <div class="simulator-card">
+      <div class="sim-header">
+        Evaluate arbitrary unit price scenarios in real time. Demand and gross margins are calculated dynamically from the selected product's calibrated model.
+      </div>
+      <div class="sim-controls">
+        <label class="sim-label">
+          Simulated Price Point: <span class="sim-price-display" id="sim-price-display">£1.00</span>
+        </label>
+        <input type="range" id="price-slider" class="price-slider"
+               min="0.10" max="50" step="0.10" value="1.00" />
+        <div class="sim-range-labels"><span id="sim-slider-min">£0.10</span><span id="sim-slider-max">£50.00</span></div>
+      </div>
+      <div class="sim-results">
+        <div class="sim-result-item">
+          <div class="sim-result-label">Expected Demand</div>
+          <div class="sim-result-value wisteria" id="sim-qty">—</div>
+        </div>
+        <div class="sim-result-item">
+          <div class="sim-result-label">Projected Revenue</div>
+          <div class="sim-result-value amethyst" id="sim-rev">—</div>
+        </div>
+        <div class="sim-result-item">
+          <div class="sim-result-label">Projected Gross Profit</div>
+          <div class="sim-result-value teal" id="sim-profit">—</div>
+        </div>
+        <div class="sim-result-item">
+          <div class="sim-result-label">vs. Optimal Revenue</div>
+          <div class="sim-result-value" id="sim-vs-opt">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-logo">◈ Price Elasticity &amp; Revenue Optimizer</span>
+      <span class="footer-sep">|</span>
+      Production Econometric &amp; Revenue Management Architecture
+      <span class="footer-sep">|</span>
+      Open Source &amp; Enterprise Ready
+    </div>
+  </footer>
+
+</div><!-- /dashboard -->
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     METHODOLOGY & LIMITATIONS MODAL
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="methodology-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Econometric Methodology &amp; Analytical Limitations</div>
+      <button class="modal-close-btn" id="close-methodology-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <h3>1. Constant vs. Variable Elasticity &amp; Interior Revenue Optimum</h3>
+      <p>
+        In basic microeconomics, constant-elasticity demand <em>Q(P) = A · P<sup>b</sup></em> produces revenue <em>R(P) = A · P<sup>1+b</sup></em>.
+        Because this function is strictly monotonic for any zero-cost framework, an unbounded interior revenue maximum does not exist mathematically.
+      </p>
+      <p>
+        <strong>Our Solution:</strong> We deploy a <strong>Log-Quadratic Demand Model</strong>:
+        <br/>
+        <code>ln(Q) = β₀ + β₁·ln(P) + β₂·(ln(P))²</code>
+        <br/>
+        When β₂ &lt; 0 (increasing price sensitivity at higher price levels), revenue exhibits a true interior global maximum at:
+        <br/>
+        <code>P* = exp( -(1 + β₁) / (2·β₂) )</code>
+      </p>
+
+      <h3>2. Microeconomic Profit Maximization (Lerner Markup Rule)</h3>
+      <p>
+        To model realistic commercial scenarios where unit marginal cost <em>c</em> is non-zero, the platform evaluates the profit function:
+        <br/>
+        <code>Π(P) = (P - c) · Q(P)</code>
+        <br/>
+        Under constant elasticity |b| &gt; 1, the optimal price is given analytically by the classical Lerner index markup equation:
+        <br/>
+        <code>P* = c · ( |b| / (|b| - 1) )</code>
+      </p>
+
+      <h3>3. Identification &amp; Confounding Sins in Observational Retail Data</h3>
+      <ul>
+        <li><strong>Simultaneity &amp; Endogeneity:</strong> Observed prices reflect both demand willingness-to-pay and unobserved cost shocks. Without exogenous instrumental variables (IV), OLS slopes measure associative price sensitivity rather than pure causal elasticity.</li>
+        <li><strong>Wholesale Tiering:</strong> Bulk order discounts can artificially generate positive elasticity slopes if large business buyers purchase high volumes at preferential price tiers. Such items are flagged as <em>Anomalous / Confounded</em>.</li>
+        <li><strong>Supply Curve Transparency:</strong> Point-of-sale datasets omit supplier marginal cost schedules. The market clearing module uses an explicit simulation benchmark (assumed ε<sub>s</sub> = 0.8) and is clearly labeled as assumption-based.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="/static/dashboard.js"></script>
+</body>
+</html>
