@@ -375,7 +375,3 @@ Potential applications include:
 - **Scenario Analysis:** Visualize the potential outcomes of different pricing assumptions.
 
 The results are intended to support analysis and decision-making, not to replace business judgment or independent model validation.
-
-## License
-
-This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for details.
